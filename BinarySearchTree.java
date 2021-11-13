@@ -73,36 +73,24 @@ public class BinarySearchTree<E extends Comparable<E>> {
      * to recursively search down the tree for the position to place the node-to-be inserted.
      */
     public void insert(E data) throws NullPointerException, IllegalArgumentException {
-        if(data == null) {
-            throw new NullPointerException("the data inserted is null");
-        }
+        if(data == null) throw new NullPointerException("the data inserted is null");
 
         Node<E> newNode = new Node<>(data);
 
-        if(this.root == null) {
-            this.root = newNode;
-        } else {
-            insertionHelper(root, newNode);
-        }
+        if(this.root == null) this.root = newNode; else insertionHelper(root, newNode);
     }
 
     /**
      * This is a helper method for {@link #insert(E data)}. It recurses down the tree to
      * find the spot to insert the node passed.
-     * @param subtree results as parent of NewNode
-     * @param newNode new data to be added in Node<E> form
      */
     public void insertionHelper(Node<E> subtree, Node<E> newNode) {
-
-        // System.out.println("HELPER METHOD subtree: " + subtree.data);
-        // System.out.println("HELPER METHOD newNode: " + newNode.data);
-
         // Checks if inserted value is null, throws error if it is
         if(root.data.compareTo(newNode.data) == 0) {
             throw new IllegalArgumentException("value already inserted");
 
         } else if(newNode.data.compareTo(subtree.data) < 0) {   // newNode < subtree, travel to the left
-            if(subtree.leftChild == null) {                     // if no children, new node is inserted here
+            if(subtree.leftChild == null) {                     // if no children, new node is inserted as left child
                 subtree.leftChild = newNode;
                 newNode.parent = subtree; 
 
@@ -110,97 +98,75 @@ public class BinarySearchTree<E extends Comparable<E>> {
                 insertionHelper(subtree.leftChild, newNode);
             }
         } else if(newNode.data.compareTo(subtree.data) > 0) {   // newNode > subtree, travel to the right
-            if(subtree.rightChild == null) {                    // if no children, new node inserted here
+            if(subtree.rightChild == null) {                    // if no children, new node inserted as right child
                 subtree.rightChild = newNode;
                 newNode.parent = subtree;
 
-            } else {                                            // current node has children, recurse down the tree
-                insertionHelper(subtree.rightChild, newNode);
+            } else {
+                insertionHelper(subtree.rightChild, newNode);   // current node has children, recurse down the tree
             }
         }
     }
 
+    /**
+     * Deletes a node from the tree given that the node exists in the tree. Throws an error
+     * otherwise. Calls {@link #deletionHelper(Node<E> subtree, E data)} to recursively 
+     * search for the node to remove.
+     */
     public void delete(E data) throws NullPointerException, IllegalArgumentException {
-        if(data == null) {
-            throw new NullPointerException("the data inserted is null");
-        }
+        if(data == null) throw new NullPointerException("the data inserted is null");
 
         deletionHelper(this.root, data);
     }
 
+    /**
+     * This is a helper method for {@link #delete(E data)}. It recurses down the tree 
+     * looking for the node that holds the data-to-be deleted. Once found, it will default
+     * to subtree's right node as its successor, unless the right node has two children,
+     * in which case it will find the data's inorder successor and use that instead as the
+     * replacement node.
+     */
     public void deletionHelper(Node<E> subtree, E data) {
-        // System.out.println(subtree.data + " " + data);
         // checking if we're at the node to be deleted
-        if(subtree.data == data) { // THIS PART WORKS !!!!!!!!!!!!!!
+        if(subtree.data == data) {
 
             Node<E> child = null;
             Node<E> parent = subtree.parent;
 
-            if(subtree.leftChild == null && subtree.rightChild == null) { // subtree has no children
-
-                // System.out.println("NO CHILDREN");
-
-                if(subtree.parent.leftChild == subtree) { // subtree is left child
-                    subtree.parent.leftChild = null;
-                } else /*(subtree.parent.rightChild == subtree)*/ { // subtree is right child
-                    subtree.parent.rightChild = null;
-                }
-
+            if(subtree.leftChild == null && subtree.rightChild == null) { // case 1: deleted node has no children
+                if(subtree.parent.leftChild == subtree) subtree.parent.leftChild = null; else subtree.parent.rightChild = null;
                 subtree.parent = null;
 
-            } else if(subtree.leftChild == null ^ subtree.rightChild == null) { // subtree has one child
-                // to hold the child node while the parent (subtree) is deleted
-                // System.out.println("ONE CHILD");
-
+            } else if(subtree.leftChild == null ^ subtree.rightChild == null) { // case 2: deleted node has one child
+                // checking which side of the deleted node has children
                 if(subtree.leftChild == null) {
                     child = subtree.rightChild;
-                    
-                    if(child.data.compareTo(parent.data) > 0) {
-                        parent.rightChild = child;
-                    } else /*(childTree.compareTo(parent) < 0)*/ {
-                        parent.leftChild = child;
-                    } 
+                    // checking which side of the parent is deleted node on, then replacing that connection with replacement node
+                    if(child.data.compareTo(parent.data) > 0) parent.rightChild = child; else parent.leftChild = child;
 
-                } else { /*(subtree.rightChild == null)*/
-                    // System.out.println("RIGHT CHILD");
+                } else {
                     child = subtree.leftChild;
-
-                    // System.out.println(child.data + " " + parent.data);
-
-                    if(child.data.compareTo(parent.data) > 0) {
-                        parent.rightChild = child;
-                    } else /*(childTree.compareTo(parent) < 0)*/ {
-                        parent.leftChild = child;
-                    } 
+                    if(child.data.compareTo(parent.data) > 0) parent.rightChild = child; else parent.leftChild = child;
                 }
 
                 subtree.parent = null;
 
-            } else { // subtree has two children
-                // TODO deletionHelper two children subcase
-
+            } else { // case 3: subtree has two children
                 child = subtree.rightChild;
 
-                // subcase 1: replacement node (child) has no children of its own OR only right child
+                // subcase 3.1: replacement node (child) has no children of its own OR only right child
                 if((child.leftChild == null && child.rightChild == null) || child.leftChild == null) {
                     // moving left branch of deleted node to the left branch of the replacement (child) node
                     child.leftChild = subtree.leftChild;
 
                     // reassigning parent/child edge
-                    if(parent.leftChild == subtree) {
-                        parent.leftChild = child;
-                    } else {
-                        parent.rightChild = child;
-                    }
-                } else { // subcase 2: the replacement node has a left child, so we find inorder successor
+                    if(parent.leftChild == subtree) parent.leftChild = child; else parent.rightChild = child;
+
+                } else { // subcase 3.2: the replacement node has a left child, so we find inorder successor
                     child = this.findInorderSuccessor(subtree);
 
                     // remove connections to new child node
-                    if(child.parent.leftChild == child) {
-                        child.parent.leftChild = null;
-                    } else {
-                        child.parent.rightChild = null;
-                    }
+                    if(child.parent.leftChild == child) child.parent.leftChild = null; else child.parent.rightChild = null;
 
                     // setting child with connections of node to be deleted
                     child.leftChild = subtree.leftChild;
@@ -210,43 +176,36 @@ public class BinarySearchTree<E extends Comparable<E>> {
 
                     // deleting subtree connections to tree and setting them to be child's
                     child.parent = subtree.parent;
+
                     // changing parent's connection to child
-
-                    // if(parent.leftChild == subtree) {
-                    //     parent.leftChild = child;
-                    // } else {
-                    //     parent.rightChild = child;
-                    // }
-
                     if(parent.leftChild == subtree) parent.leftChild = child; else parent.rightChild = child;
                 }
             }
+
         } else { // recurse further down the tree
-            if(data.compareTo(subtree.data) < 0) { 
-                deletionHelper(subtree.leftChild, data);
-            } else if(data.compareTo(subtree.data) > 0) {
-                deletionHelper(subtree.rightChild, data);
-            }
-            
-            // System.out.println("RECURSING");
+            if(data.compareTo(subtree.data) < 0) deletionHelper(subtree.leftChild, data); else deletionHelper(subtree.rightChild, data);
         }
     }
 
+    // TODO search function
+    // public Node<E> find(E data) {
+        
+    // }
+
     /**
-     * This is a method to find the in-order successor for a node with two children. It
-     * iterates down the left side of the tree until it finds the largest value and
-     * returns it.
-     * 
-     * TODO this java doc header
+     * Finds the inorder successor of node passed through. Uses its right child, then 
+     * continuously iterates to the left until it finds the smallest value with respect
+     * to the currNode.
+     * @return next largest value in the tree with respect to currNode
      */
-    public Node<E> findInorderSuccessor(Node<E> subtree) {
-        Node<E> min = subtree;
+    public Node<E> findInorderSuccessor(Node<E> currNode) {
+        Node<E> min = currNode;
 
-        subtree = subtree.rightChild;
+        currNode = currNode.rightChild;
 
-        while(subtree.leftChild != null) {
-            subtree = subtree.leftChild;
-            min = subtree;
+        while(currNode.leftChild != null) {
+            currNode = currNode.leftChild;
+            min = currNode;
         }
 
         return min;
@@ -257,38 +216,36 @@ public class BinarySearchTree<E extends Comparable<E>> {
      * and it doesn't even fucking work
      * @param args
      */
-    public String traverse(Node<E> node) {
-        String rslt = "";
-        boolean hasRightNode = false;
-        boolean hasLeftNode = false;
-        if(node.rightChild != null) {
-            hasRightNode = true;
-            rslt += "(";
-            rslt += traverse(node.rightChild);
-        }
-        if(node.leftChild != null) {
-            hasLeftNode = true;
-            if(hasRightNode) {
-                rslt += ",";
-            } else {
-                rslt += "(";
-            }
-            rslt += traverse(node.leftChild);
-        }
-        if (hasLeftNode || hasRightNode) {
-            rslt += ")";
-        }
-        rslt += node.data;
-        return rslt;
-    }
+    // public String traverse(Node<E> node) {
+    //     String rslt = "";
+    //     boolean hasRightNode = false;
+    //     boolean hasLeftNode = false;
+    //     if(node.rightChild != null) {
+    //         hasRightNode = true;
+    //         rslt += "(";
+    //         rslt += traverse(node.rightChild);
+    //     }
+    //     if(node.leftChild != null) {
+    //         hasLeftNode = true;
+    //         if(hasRightNode) {
+    //             rslt += ",";
+    //         } else {
+    //             rslt += "(";
+    //         }
+    //         rslt += traverse(node.leftChild);
+    //     }
+    //     if (hasLeftNode || hasRightNode) {
+    //         rslt += ")";
+    //     }
+    //     rslt += node.data;
+    //     return rslt;
+    // }
 
     public static void main(String[] args) {
-
         Random rand = new Random();
 
         BinarySearchTree<Integer> tree = new BinarySearchTree<>();
         for(int i = 0; i < 20; i++) {
-            // TODO random number but I can't get it because i'm a fucking moron
             tree.insert(rand.nextInt(100));
         }
         tree.insert(15);
@@ -358,7 +315,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
         // System.out.println(tree.root.rightChild.leftChild.data); // 20
         // System.out.println(tree.root.rightChild.rightChild.rightChild.data); // 100
 
-        System.out.println(tree.traverse(tree.root));
+        // System.out.println(tree.traverse(tree.root));
     }
 
     // TODO get junit 5 installed and working because middleton fucking blocked github
