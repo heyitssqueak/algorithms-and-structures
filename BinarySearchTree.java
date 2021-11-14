@@ -25,6 +25,10 @@ public class BinarySearchTree<E extends Comparable<E>> {
             this.data = data;
         }
 
+        public boolean hasChildren() {
+            if(this.leftChild == null || this.rightChild == null) return false; else return true;
+        }
+
         /**
          * Prints out a string of the nodes in level-order; so starting with the top-most
          * node and reading left-to-right on each level moving down. [Uses FIFO queue to]
@@ -187,10 +191,21 @@ public class BinarySearchTree<E extends Comparable<E>> {
         }
     }
 
-    // TODO search function
-    // public Node<E> find(E data) {
-        
-    // }
+    /**
+     * Recurses down the tree until it finds a node that matches the data passed through
+     * the parameter. Will throw an error if data value isn't found.
+     */
+    public Node<E> find(E data) throws IllegalArgumentException {
+        Node<E> currNode = this.root;
+
+        while(currNode.data != data ^ !currNode.hasChildren()) {
+            System.out.println(currNode.data);
+            if(currNode.data == data) return currNode;
+            if(data.compareTo(currNode.data) < 0) currNode = currNode.leftChild; else currNode = currNode.rightChild;
+        }
+
+        throw new IllegalArgumentException("your data value isn't in the tree");
+    }
 
     /**
      * Finds the inorder successor of node passed through. Uses its right child, then 
@@ -211,43 +226,14 @@ public class BinarySearchTree<E extends Comparable<E>> {
         return min;
     }
 
-    /**
-     * "borrowed" someone else's code to try and find a way to visualize bst
-     * and it doesn't even fucking work
-     * @param args
-     */
-    // public String traverse(Node<E> node) {
-    //     String rslt = "";
-    //     boolean hasRightNode = false;
-    //     boolean hasLeftNode = false;
-    //     if(node.rightChild != null) {
-    //         hasRightNode = true;
-    //         rslt += "(";
-    //         rslt += traverse(node.rightChild);
-    //     }
-    //     if(node.leftChild != null) {
-    //         hasLeftNode = true;
-    //         if(hasRightNode) {
-    //             rslt += ",";
-    //         } else {
-    //             rslt += "(";
-    //         }
-    //         rslt += traverse(node.leftChild);
-    //     }
-    //     if (hasLeftNode || hasRightNode) {
-    //         rslt += ")";
-    //     }
-    //     rslt += node.data;
-    //     return rslt;
-    // }
-
     public static void main(String[] args) {
-        Random rand = new Random();
+        //Random rand = new Random();
 
         BinarySearchTree<Integer> tree = new BinarySearchTree<>();
-        for(int i = 0; i < 20; i++) {
-            tree.insert(rand.nextInt(100));
-        }
+        // for(int i = 0; i < 20; i++) {
+        //     tree.insert(rand.nextInt(100));
+        // }
+
         tree.insert(15);
         tree.insert(21);
         tree.insert(31);
@@ -316,6 +302,9 @@ public class BinarySearchTree<E extends Comparable<E>> {
         // System.out.println(tree.root.rightChild.rightChild.rightChild.data); // 100
 
         // System.out.println(tree.traverse(tree.root));
+
+        tree.find(100);
+        tree.find(69);
     }
 
     // TODO get junit 5 installed and working because middleton fucking blocked github
